@@ -1,8 +1,16 @@
-from pyspark.sql import SparkSession
 import os
 import sys
+import logging
+from logging.handlers import RotatingFileHandler
 
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
+
+# Add rotating log
+logger = logging.getLogger("KommatiPara Log")
+logger.setLevel(logging.DEBUG)
+handler = RotatingFileHandler("logs/kommatipara.log", maxBytes=20, backupCount=5)
+logger.addHandler(handler)
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 output_file = os.path.join(BASE_PATH, 'client_data', 'output_client_data.csv')
@@ -24,6 +32,7 @@ def __rename_data_columns(data, data_to_rename=None):
     if data_to_rename is None:
         data_to_rename = [('id', 'client_identifier'), ('btc_a', 'bitcoin_address'), ('cc_t', 'credit_card_type')]
 
+    logger.debug(f"Data to be renamed: {data_to_rename}")
     for dtr in data_to_rename:
         data = data.withColumnRenamed(dtr[0], dtr[1])
 
@@ -41,6 +50,7 @@ def __remove_personal_info(data, personal_info=None):
     if personal_info is None:
         personal_info = ['first_name', 'last_name', 'cc_n']
 
+    logger.debug(f"Personal data to be removed: {personal_info}")
     return data.drop(*personal_info)
 
 
@@ -54,6 +64,8 @@ def __filter_data_per_country(data, countries=None):
     """
     if countries is None:
         countries = ['United Kingdom', 'Netherlands']
+
+    logger.debug(f"Filtering countries: {countries}")
     return data.filter(col('country').isin(countries))
 
 
@@ -88,6 +100,7 @@ def execute():
         countries_to_filter = sys.argv[3][1:-1].split(',')
         countries_to_filter = [_.strip() for _ in countries_to_filter]  # Removing whitespaces from data
     except Exception:  # Rollback to default values
+        logger.debug(f"Invalid or no parameters passed")
         client_file_path = os.path.join(BASE_PATH, 'dataset_one.csv')
         financial_details_file_path = os.path.join(BASE_PATH, 'dataset_two.csv')
         countries_to_filter = ['United Kingdom', 'Netherlands']
