@@ -1,4 +1,5 @@
 *.log
+*.pyc
 kommatipara/client_data/*
 !kommatipara/client_data/.gitkeep
 dist

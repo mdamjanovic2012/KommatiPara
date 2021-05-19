@@ -15,6 +15,13 @@ spark = SparkSession \
 
 
 def __rename_data_columns(data, data_to_rename=None):
+    """
+   Renames columns from dataset.
+
+   :param dataset data:
+   :param list data_to_rename: list of columns to be renamed in data
+   :return: dataset with renamed columns
+   """
     if data_to_rename is None:
         data_to_rename = [('id', 'client_identifier'), ('btc_a', 'bitcoin_address'), ('cc_t', 'credit_card_type')]
 
@@ -25,6 +32,13 @@ def __rename_data_columns(data, data_to_rename=None):
 
 
 def __remove_personal_info(data, personal_info=None):
+    """
+   Removes columns from dataset.
+
+   :param dataset data:
+   :param list personal_info: list of columns to be removed from data
+   :return: dataset with removed columns
+   """
     if personal_info is None:
         personal_info = ['first_name', 'last_name', 'cc_n']
 
@@ -32,13 +46,26 @@ def __remove_personal_info(data, personal_info=None):
 
 
 def __filter_data_per_country(data, countries=None):
+    """
+    Filters dataset by countries.
+
+    :param dataset data: dataset to be filtered
+    :param list countries: list of countries that dataset will be filtered by
+    :return: Filtered dataset
+    """
     if countries is None:
         countries = ['United Kingdom', 'Netherlands']
     return data.filter(col('country').isin(countries))
 
 
 def __save_output_file(data):
-    if os.path.exists(output_file):  # to_csv doesnt have an overwrite mode
+    """
+    Saving dataset to output folder. Overwrites file if exists.
+
+    :param dataset data: dataset to be saved
+    :return: void
+    """
+    if os.path.exists(output_file):
         os.remove(output_file)
 
     data.toPandas().to_csv(output_file, encoding='utf-8', index=False)
@@ -46,6 +73,9 @@ def __save_output_file(data):
 
 
 def execute():
+    """
+    Main function that executes whole logic.
+    """
     clients = spark.read.csv(client_file_path, header=True)
     clients = __filter_data_per_country(data=clients)
 
@@ -53,10 +83,8 @@ def execute():
     full_clients_data = clients.join(financial_details, on=['id'], how='inner')
 
     full_clients_data = __remove_personal_info(data=full_clients_data)
-    # Rename columns
     full_clients_data = __rename_data_columns(data=full_clients_data)
-    print(output_file)
-    full_clients_data.show()
+
     __save_output_file(full_clients_data)
 
 
