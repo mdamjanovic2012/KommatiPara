@@ -1,5 +1,6 @@
 *.log
 kommatipara/client_data/*
+!kommatipara/client_data/.gitkeep
 dist
 KommatiPara.egg-info
 venv
