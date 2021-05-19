@@ -18,6 +18,10 @@ Project expects arguments to be passed (if not passed or passed incorectly it wi
 ## Create source distribution file:
 `python setup.py sdist`
 
+## Logs:
+
+  Logs are stored in `logs` folder. 
+
 ## Authors
 
 * **Milos Damjanovic** - (https://github.com/mdamjanovic2012)
