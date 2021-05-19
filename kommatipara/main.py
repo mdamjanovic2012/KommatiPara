@@ -1,11 +1,10 @@
 from pyspark.sql import SparkSession
 import os
+import sys
 
 from pyspark.sql.functions import col
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-client_file_path = os.path.join(BASE_PATH, 'dataset_one.csv')
-financial_details_file_path = os.path.join(BASE_PATH, 'dataset_two.csv')
 output_file = os.path.join(BASE_PATH, 'client_data', 'output_client_data.csv')
 
 spark = SparkSession \
@@ -75,9 +74,26 @@ def __save_output_file(data):
 def execute():
     """
     Main function that executes whole logic.
+
+    Gets arguments from command line:
+      clients_file_path clients_financials_file countries_to_filter
+
+    Example
+    C:/.../kommatipara/dataset_one.csv C:/.../kommatipara/dataset_two.csv "[United Kingdom, Netherlands]"
     """
+    try:
+        client_file_path = sys.argv[1]
+        financial_details_file_path = sys.argv[2]
+
+        countries_to_filter = sys.argv[3][1:-1].split(',')
+        countries_to_filter = [_.strip() for _ in countries_to_filter]  # Removing whitespaces from data
+    except Exception:  # Rollback to default values
+        client_file_path = os.path.join(BASE_PATH, 'dataset_one.csv')
+        financial_details_file_path = os.path.join(BASE_PATH, 'dataset_two.csv')
+        countries_to_filter = ['United Kingdom', 'Netherlands']
+
     clients = spark.read.csv(client_file_path, header=True)
-    clients = __filter_data_per_country(data=clients)
+    clients = __filter_data_per_country(data=clients, countries=countries_to_filter)
 
     financial_details = spark.read.csv(financial_details_file_path, header=True)
     full_clients_data = clients.join(financial_details, on=['id'], how='inner')
