@@ -1,0 +1,5 @@
+*.log
+kommatipara/client_data/*
+dist
+KommatiPara.egg-info
+venv
